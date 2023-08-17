@@ -1,0 +1,58 @@
+openssl genrsa -out ca.key 4096
+openssl req -new -x509 -key ca.key -days 730 -out ca.crt -config <( cat csr_ca.txt )
+openssl genrsa -out server.key 4096
+openssl req -new -key server.key -out server.csr -config <( cat server_answer.txt )
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 730 -extensions 'req_ext' -extfile <(cat server_answer.txt)
+
+
+
+server_answer.txt:
+[req]
+default_bits = 4096
+prompt = no
+default_md = sha256
+x509_extensions = req_ext
+req_extensions = req_ext
+distinguished_name = dn
+
+[ dn ]
+C=CN
+ST=Zhejiang
+L=Hangzhou
+O=MyOrg
+OU=MyOrg
+emailAddress=example.com
+CN=example.com 
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = example.com
+DNS.2 = 123@example.com
+DNS.3 = meetings.example.com
+
+
+
+csr_ca.txt:
+[req]
+default_bits = 4096
+prompt = no
+default_md = sha256
+distinguished_name = dn 
+x509_extensions = usr_cert
+
+[ dn ]
+C=CN
+ST=Zhejiang
+L=Hangzhou
+O=MyOrg
+OU=MyOrg
+emailAddress=example.com
+CN=example.com
+
+
+[ usr_cert ]
+basicConstraints=CA:TRUE
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
